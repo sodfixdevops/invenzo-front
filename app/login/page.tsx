@@ -6,16 +6,42 @@ import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { AuthError } from "next-auth";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Importar el estilo
 import { loginAction } from "../lib/actions";
+import { Lock, Moon, Sun, User } from "lucide-react";
+import ThemeToggle from "../components/ThemeToggle";
 
 export default function LoginPage() {
-  const router = useRouter();
+  /*const router = useRouter();
   const [username, setNombreUsuario] = useState<string>("");
   const [password, setPassUsuario] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const [error, setError] = useState<string | null>(null);*/
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setError(""); // limpiar antes de nuevo intento
+
+    const responseNextAuth = await signIn("credentials", {
+      username,
+      password,
+      redirect: false,
+    });
+    console.log(responseNextAuth);
+    if (responseNextAuth?.error) {
+      setError("Usuario o contraseña incorrecta");
+      return;
+    }
+
+    //router.push("/dashboard");
+  };
+
+  /*const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log(password);
     const responseNextAuth = await signIn("credentials", {
@@ -41,81 +67,74 @@ export default function LoginPage() {
         return { error: error.cause?.err?.message };
       }
       return { error: "error 500" };
-    }*/
-  };
+    }
+  };*/
 
   return (
-    <div className="min-h-screen grid place-content-center bg-slate-500">
-      <div
-        className="w-96 shadow-xl mx-auto text-white bg-clip-padding
-            backdrop-filter bg-white bg-opacity-10 backdrop-blur-md mt-20 py-10 px-8 rounded-md"
-      >
-        <div className="text-center text-2xl">Login</div>
-        <form onSubmit={handleSubmit}>
-          <div className="p-4 md:p-6 rounded-md">
-            {/*Usuario*/}
-            <div className="mb-8">
-              <label
-                htmlFor="username"
-                className="mb-2 block text-sm font-semibold font-sans"
-              >
-                Usuario:
-              </label>
-              <div className="relative">
-                <div>
-                  <Input
-                    id="username"
-                    name="username"
-                    placeholder="Ingrese Nickname/email"
-                    type="text"
-                    onChange={(e) => setNombreUsuario(e.target.value)}
-                  />
-                  <UserCircleIcon
-                    className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] 
-                                    -translate-y-1/2 text-gray-700 peer-focus:text-gray-900"
-                  />
-                </div>
-              </div>
-            </div>
-            {/*Contraseña*/}
-            <div className="mb-4">
-              <label
-                htmlFor="password"
-                className="mb-2 block text-sm font-semibold font-sans"
-              >
-                Contraseña:
-              </label>
-              <div className="relative">
-                <div>
-                  <Input
-                    id="password"
-                    name="password"
-                    placeholder="Ingrese contraseña"
-                    type="password"
-                    onChange={(e) => setPassUsuario(e.target.value)}
-                  />
-                  <LockClosedIcon
-                    className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] 
-                                    -translate-y-1/2 text-gray-700 peer-focus:text-gray-900"
-                  />
-                </div>
-              </div>
-            </div>
-            {error && <label>{error}</label>}
-            {/*Contraseña*/}
-            <div>
-              <button
-                className="mt-1 bg-white bg-opacity-30 hover:bg-opacity-40 transition duration-500 
-                            rounded-md shadow-sm p-3 w-full font-semibold"
-                type="submit"
-              >
-                Login
-              </button>
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-300 to-blue-600 dark:from-gray-800 dark:to-gray-900 transition-colors">
+      <ThemeToggle />
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 w-full max-w-md space-y-6">
+        <div className="flex flex-col items-center">
+          <div className="bg-gradient-to-br from-blue-400 to-blue-600 dark:from-blue-600 dark:to-blue-400 p-4 rounded-full shadow-md">
+            <User className="text-white" size={32} />
           </div>
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mt-4">
+            MEMBER LOGIN
+          </h2>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-300">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={() => setRemember(!remember)}
+              />
+              <span>Remember me</span>
+            </label>
+            <a
+              href="/forgot-password"
+              className="text-blue-500 hover:underline"
+            >
+              Forgot password?
+            </a>
+          </div>
+
+          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+
+          <button
+            type="submit"
+            className="w-full py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-semibold shadow-md transition"
+          >
+            LOGIN
+          </button>
         </form>
       </div>
-      <ToastContainer />
     </div>
   );
 }

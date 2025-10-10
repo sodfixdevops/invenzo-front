@@ -18,33 +18,50 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "password", type: "password" },
       },
       async authorize(credentials) {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/usuarios/login`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              username: credentials?.username,
-              password: credentials?.password,
-            }),
-            headers: { "Content-Type": "application/json" },
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/usuarios/login`,
+            {
+              method: "POST",
+              body: JSON.stringify({
+                username: credentials?.username,
+                password: credentials?.password,
+              }),
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+
+          // Si la API responde con error (404, 401, etc.)
+          if (!res.ok) {
+            const errResp = await res.json().catch(() => null);
+            // Mostrar mensaje devuelto por la API o mensaje genérico
+            const msg =
+              errResp?.message || `Error ${res.status}: ${res.statusText}`;
+            throw new Error(msg);
           }
-        );
 
-        const resp = await res.json();
-        console.log(">>", resp);
+          // Aquí sí es 200 OK
+          const resp = await res.json();
+          console.log(">>", resp);
 
-        if (resp.status == 401) {
-          throw new Error(resp.message);
+          // Si tu API devuelve algo indicando login inválido:
+          if (!resp || !resp.token) {
+            return null; // NextAuth lo toma como credenciales inválidas
+          }
+
+          // Usuario válido:
+          const user: User = {
+            username: resp.username,
+            token: resp.token,
+            status: resp.status,
+            codigoUsuario: resp.codigoUsuario,
+          };
+
+          return user;
+        } catch (err) {
+          console.error("Error en authorize:", err);
+          throw err; // NextAuth mostrará error en responseNextAuth.error
         }
-        //const user: LoginUserResponse = resp;
-        //const user = { id: "1", name: "J Smith", email: "jsmith@example.com" }
-        const user: User = {
-          username: resp.username,
-          token: resp.token,
-          status: resp.status,
-          codigoUsuario: resp.codigoUsuario,
-        };
-        return user;
       },
     }),
   ],
